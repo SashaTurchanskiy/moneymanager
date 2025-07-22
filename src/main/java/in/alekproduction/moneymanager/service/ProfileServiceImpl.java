@@ -15,6 +15,7 @@ import java.util.UUID;
 public class ProfileServiceImpl {
 
     private final ProfileRepo profileRepo;
+    private final EmailService emailService;
 
     public ProfileDto registerProfile(ProfileDto profileDto) {
         log.info("Registering profile");
@@ -22,6 +23,11 @@ public class ProfileServiceImpl {
         ProfileEntity newProfile = toEntity(profileDto);
         newProfile.setActivationToken(UUID.randomUUID().toString());
         newProfile = profileRepo.save(newProfile);
+        //send activation email here if needed
+        String activationLink = "http://localhost:8787/api/v1.0/profile/activate?token=" + newProfile.getActivationToken();
+        String subject = "Activate ur Money manager account";
+        String body = "Click on the link to activate your account: " + activationLink;
+        emailService.sendEmail(newProfile.getEmail(), subject, body);
         return toDto(newProfile);
     }
 
