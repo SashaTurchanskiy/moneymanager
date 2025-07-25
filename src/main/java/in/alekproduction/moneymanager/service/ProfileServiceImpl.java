@@ -1,15 +1,20 @@
 package in.alekproduction.moneymanager.service;
 
+import in.alekproduction.moneymanager.dto.AuthDto;
 import in.alekproduction.moneymanager.dto.ProfileDto;
 import in.alekproduction.moneymanager.enitity.ProfileEntity;
 import in.alekproduction.moneymanager.repository.ProfileRepo;
+import in.alekproduction.moneymanager.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -20,6 +25,8 @@ public class ProfileServiceImpl {
     private final ProfileRepo profileRepo;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
 
     public ProfileDto registerProfile(ProfileDto profileDto) {
         log.info("Registering profile");
@@ -41,7 +48,7 @@ public class ProfileServiceImpl {
                 .id(profileDto.getId())
                 .fullName(profileDto.getFullName())
                 .email(profileDto.getEmail())
-                .password(passwordEncoder.encode(profileDto.getPassword())) // Ensure password is encoded
+                .password(profileDto.getPassword())
                 .profileImageUrl(profileDto.getProfileImageUrl())
                 .createdAt(profileDto.getCreatedAt())
                 .updatedAt(profileDto.getUpdatedAt())
@@ -105,5 +112,20 @@ public class ProfileServiceImpl {
                 .createdAt(currentUser.getCreatedAt())
                 .updatedAt(currentUser.getUpdatedAt())
                 .build();
+    }
+
+    public Map<String, Object> authenticateAndGenerateToken(AuthDto authDto) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authDto.getEmail(), authDto.getPassword()));
+            //Generate JWT token here
+            String token = jwtUtils.generateToken(authDto.getEmail());
+            return Map.of(
+                    "token", token,
+                    "user", getPublicProfile(authDto.getEmail())
+            );
+        }catch (Exception e) {
+            log.error("Authentication failed for email: {}", authDto.getEmail(), e);
+            throw new RuntimeException("Invalid credentials or account not activated");
+        }
     }
 }
