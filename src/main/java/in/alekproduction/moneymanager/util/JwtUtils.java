@@ -51,8 +51,12 @@ public class JwtUtils {
 
     private <T> T extractClaims(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
+        if (claims == null) {
+            return null;
+        }
         return claimsResolver.apply(claims);
     }
+
 
     public String extractEmail(String token) {
         return extractClaims(token, Claims::getSubject);

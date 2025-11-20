@@ -18,9 +18,9 @@ public class ProfileController {
 
     private final ProfileServiceImpl profileService;
 
-    @PostMapping("/register")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ProfileDto> registerProfile(@RequestBody ProfileDto profileDto){
+    @PostMapping("/signup")
+    //@PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ProfileDto> registerProfile(@RequestBody ProfileDto profileDto) {
         ProfileDto registeredProfile = profileService.registerProfile(profileDto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(registeredProfile);
@@ -39,25 +39,22 @@ public class ProfileController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthDto authDto){
+    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthDto authDto) {
 
-        try{
+        try {
             if (!profileService.isAccountActive(authDto.getEmail())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("message", "Profile is not activated"));
 
             }
-           Map<String, Object> response =  profileService.authenticateAndGenerateToken(authDto);
+            Map<String, Object> response = profileService.authenticateAndGenerateToken(authDto);
 
             return ResponseEntity.ok(response);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "Invalid credentials or account not activated"));
         }
     }
+}
 
-    @GetMapping("/test")
-    public String test(){
-        return "Test successful";
-    }}

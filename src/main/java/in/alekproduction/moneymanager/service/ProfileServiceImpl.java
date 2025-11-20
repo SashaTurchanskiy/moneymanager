@@ -36,7 +36,7 @@ public class ProfileServiceImpl {
         newProfile.setPassword(passwordEncoder.encode(profileDto.getPassword()));
         newProfile = profileRepo.save(newProfile);
         //send activation email here if needed
-        String activationLink = "http://localhost:8787/api/v1.0/profile/activate?token=" + newProfile.getActivationToken();
+        String activationLink = "http://localhost:8787/profile/activate?token=" + newProfile.getActivationToken();
         String subject = "Activate ur Money manager account";
         String body = "Click on the link to activate your account: " + activationLink;
         emailService.sendEmail(newProfile.getEmail(), subject, body);
@@ -48,7 +48,7 @@ public class ProfileServiceImpl {
                 .id(profileDto.getId())
                 .fullName(profileDto.getFullName())
                 .email(profileDto.getEmail())
-                .password(profileDto.getPassword())
+                .password(passwordEncoder.encode(profileDto.getPassword()))
                 .profileImageUrl(profileDto.getProfileImageUrl())
                 .createdAt(profileDto.getCreatedAt())
                 .updatedAt(profileDto.getUpdatedAt())
