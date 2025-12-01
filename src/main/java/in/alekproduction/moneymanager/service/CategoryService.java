@@ -19,7 +19,7 @@ public class CategoryService {
     //save category
     public CategoryDto saveCategory(CategoryDto categoryDto){
         ProfileEntity profile = profileService.getCurrentProfile();
-        if (categoryRepo.existByNameAndProfileId(categoryDto.getName(), profile.getId())){
+        if (categoryRepo.existsByNameAndProfileId(categoryDto.getName(), profile.getId())){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Category with the same name already exists");
         }
         Category category = toEntity(categoryDto, profile);
