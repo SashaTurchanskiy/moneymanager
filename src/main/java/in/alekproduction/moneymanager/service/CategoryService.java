@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -25,6 +28,27 @@ public class CategoryService {
         Category category = toEntity(categoryDto, profile);
         Category savedCategory = categoryRepo.save(category);
         return toDto(savedCategory);
+    }
+    //get categories for current user
+    public List<CategoryDto> getCategoriesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<Category> categories = categoryRepo.findByProfileId(profile.getId());
+        return categories.stream().map(this::toDto).toList();
+    }
+    //get categories by type for current user
+    public List<CategoryDto> getCategoriesByTypeForCurrentUser(String type){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<Category> entities = categoryRepo.findByTypeAndProfileId(type, profile.getId());
+        return entities.stream().map(this::toDto).toList();
+    }
+    public CategoryDto updateCategory(Long categoryId, CategoryDto dto){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        Category existingCategory = categoryRepo.findByIdAndProfileId(categoryId, profile.getId())
+                .orElseThrow(()-> new RuntimeException("Category not found or not accessible"));
+        existingCategory.setName(dto.getName());
+        existingCategory.setIcon(dto.getIcon());
+        existingCategory = categoryRepo.save(existingCategory);
+        return toDto(existingCategory);
     }
 
 
