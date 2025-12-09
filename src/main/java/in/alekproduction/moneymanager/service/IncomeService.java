@@ -12,6 +12,10 @@ import in.alekproduction.moneymanager.repository.IncomeRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class IncomeService {
@@ -20,14 +24,55 @@ public class IncomeService {
     private final IncomeRepo incomeRepo;
     private final ProfileServiceImpl profileService;
 
-    //add expense to the database
-    public IncomeDto addExpense(IncomeDto incomeDto) {
+    //add income to the database
+    public IncomeDto addIncome(IncomeDto incomeDto){
         ProfileEntity profile = profileService.getCurrentProfile();
-        Category category = categoryRepo.findById(incomeDto.getId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+        if (profile == null) {
+            throw new RuntimeException("Profile not found");
+        }
+
+        Long categoryId = incomeDto.getCategoryId();
+        if (categoryId == null) {
+            throw new RuntimeException("Category id must not be null");
+        }
+
+        Category category = categoryRepo.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found with id " + categoryId));
+
         Income income = toEntity(incomeDto, profile, category);
         Income savedIncome = incomeRepo.save(income);
         return toDto(savedIncome);
+    }
+    //Retrieves all incomes for the current month/year
+    public List<IncomeDto> getCurrentMonthIncomesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = now.withDayOfMonth(1);
+        LocalDate endDate = now.withDayOfMonth(now.lengthOfMonth());
+        List<Income> incomes = incomeRepo.findByProfileIdAndDateBetween(profile.getId(), startDate, endDate);
+        return incomes.stream().map(this::toDto).toList();
+    }
+    //delete income by id
+    public void deleteIncomeById(Long incomeId) throws Exception {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        Income income = incomeRepo.findById(incomeId)
+                .orElseThrow(()-> new Exception("Income not found with id " + incomeId));
+        if (!income.getProfile().getId().equals(profile.getId())){
+            throw new Exception("You are not authorized to delete this income");
+        }
+        incomeRepo.deleteById(incomeId);
+    }
+    //Get latest top 5 incomes
+    public List<IncomeDto> getLatestTop5IncomesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<Income> incomes = incomeRepo.findTop5ByProfileIdOrderByDateDesc(profile.getId());
+        return incomes.stream().map(this::toDto).toList();
+    }
+    //Get total expenses for current user
+    public BigDecimal totalIncomesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        BigDecimal total = incomeRepo.findTotalExpenseByProfileId(profile.getId());
+        return total != null ? total : BigDecimal.ZERO;
     }
 
 

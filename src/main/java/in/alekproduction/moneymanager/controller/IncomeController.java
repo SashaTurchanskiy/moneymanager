@@ -5,10 +5,9 @@ import in.alekproduction.moneymanager.service.IncomeService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/income")
@@ -19,7 +18,17 @@ public class IncomeController {
 
     @PostMapping("/add")
     public ResponseEntity<IncomeDto> addIncome(@RequestBody IncomeDto incomeDto){
-        IncomeDto savedIncome = incomeService.addExpense(incomeDto);
+        IncomeDto savedIncome = incomeService.addIncome(incomeDto);
         return ResponseEntity.status(201).body(savedIncome);
+    }
+    @GetMapping("/getCurrentMonthIncomes")
+    public ResponseEntity<List<IncomeDto>> getIncomes(){
+        List<IncomeDto> incomeDtos = incomeService.getCurrentMonthIncomesForCurrentUser();
+        return ResponseEntity.ok(incomeDtos);
+    }
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteIncome(@PathVariable Long id) throws Exception {
+        incomeService.deleteIncomeById(id);
+        return ResponseEntity.noContent().build();
     }
 }
