@@ -69,7 +69,7 @@ public class IncomeService {
         return incomes.stream().map(this::toDto).toList();
     }
     //Get total expenses for current user
-    public BigDecimal totalIncomesForCurrentUser(){
+    public BigDecimal getTotalIncomesForCurrentUser(){
         ProfileEntity profile = profileService.getCurrentProfile();
         BigDecimal total = incomeRepo.findTotalExpenseByProfileId(profile.getId());
         return total != null ? total : BigDecimal.ZERO;
