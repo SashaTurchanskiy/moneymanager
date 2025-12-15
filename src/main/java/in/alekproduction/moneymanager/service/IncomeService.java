@@ -10,6 +10,7 @@ import in.alekproduction.moneymanager.repository.CategoryRepo;
 import in.alekproduction.moneymanager.repository.ExpenseRepo;
 import in.alekproduction.moneymanager.repository.IncomeRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -73,6 +74,14 @@ public class IncomeService {
         ProfileEntity profile = profileService.getCurrentProfile();
         BigDecimal total = incomeRepo.findTotalExpenseByProfileId(profile.getId());
         return total != null ? total : BigDecimal.ZERO;
+    }
+
+    //filter incomes by date range
+    public List<IncomeDto> filterIncomes(LocalDate startDate, LocalDate endDate, String keyword, Sort sort) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<Income> incomes = incomeRepo.findByProfileIdAndDateBetweenAndNameContainingIgnoreCase(
+                profile.getId(), startDate, endDate, keyword, sort);
+        return incomes.stream().map(this::toDto).toList();
     }
 
 
